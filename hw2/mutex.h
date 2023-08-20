@@ -59,13 +59,10 @@ static inline void mutex_lock(mutex_t *mutex)
             return;
         spin_hint();
     }
-    //| MUTEX_SLEEPING
     int state = exchange(&mutex->state, MUTEX_LOCKED | MUTEX_SLEEPING, relaxed);
 
     while (state & MUTEX_LOCKED) {
-        //| MUTEX_SLEEPING
         futex_wait(&mutex->state, MUTEX_LOCKED | MUTEX_SLEEPING);
-        //| MUTEX_SLEEPING
         state = exchange(&mutex->state, MUTEX_LOCKED | MUTEX_SLEEPING, relaxed);
     }
 
@@ -75,7 +72,7 @@ static inline void mutex_lock(mutex_t *mutex)
 static inline void mutex_unlock(mutex_t *mutex)
 {
     int state = exchange(&mutex->state, 0, release);
-    if (state & MUTEX_SLEEPING)
+    if (state & MUTEX_SLEEPING) 
         futex_wake(&mutex->state, 1); //FFFF
 }
 
